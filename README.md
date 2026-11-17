@@ -6,8 +6,7 @@ station does. No board, no bench. No firmware or source file in this fork is cha
 
 **What runs:** the upstream ELF built from commit `1c98525` (FreeRTOS, `CTS-SAT-1_FW.elf`) on Simantic's `sim`
 (pyrite engine, model `STM32L4R5ZI`). The scenario, peers and pre-built ELF live in Simantic's
-[`sim-fixtures`](https://github.com/simantic-dev/sim-fixtures) repository (draft
-[PR #1266](https://github.com/simantic-dev/sim-fixtures/pull/1266),
+`sim-fixtures` repository (branch `l4r5/cts-sat-1-obc`,
 `tests/stm/nucleo-l4r5zi/cts-sat-1-obc/`), not here.
 
 **The scenario**, as `sim graph --scenario` prints it. The square box is the simulated MCU running the firmware, the
