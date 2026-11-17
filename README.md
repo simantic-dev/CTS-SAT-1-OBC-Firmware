@@ -19,7 +19,7 @@ flowchart LR
   obc -- "spi1" --- obc_spi1mux
   obc_nand0(["nand0<br/>SPI.ScriptedSpiSlave<br/>MT29F1G01 SPI NAND, CS PE7"])
   obc -- "spi1mux 0x0" --- obc_nand0
-  obc_adcs(["adcs<br/>I2C.ScriptedI2cSlave<br/>CubeSpace CubeComputer"])
+  obc_adcs(["adcs<br/>I2C.ScriptedI2cSlave<br/>CubeSpace ADCS"])
   obc -- "i2c1 0x57" --- obc_adcs
   obc_eps(["eps<br/>UART.ScriptedUartPeer"])
   obc_gnss(["gnss<br/>UART.ScriptedUartPeer<br/>NovAtel OEM7-style"])
@@ -39,7 +39,7 @@ flowchart LR
 | --- | --- | --- |
 | External flash (LittleFS) | SPI1 (PE13/14/15), CS PE7 | Micron MT29F1G01 SPI NAND, 128 MiB, 2048 B pages; the part the driver's ID check (`2C 14`) names |
 | EPS | UART5 (PC12/PD2) | `<cmd>...</cmd>` / `<rsp>...</rsp>` frames; fixed housekeeping |
-| CubeSpace ADCS | I2C1 (PG14/PG13), address 0x57 | CubeComputer stand-in: identification, boot status, state, run mode, command ack, CRC-8 |
+| CubeSpace ADCS | I2C1 (PG14/PG13), address 0x57 | ADCS stand-in: identification, boot status, state, run mode, command ack, CRC-8 |
 | GNSS | USART3 (PC4/PC5) | NovAtel OEM7 ASCII: `log timea once`, `log bestxyza once`, CRC32 trailer |
 | Ground station | LPUART1 (PG7/PG8) | sends the telecommands below at fixed virtual times; the console text is the reply |
 
