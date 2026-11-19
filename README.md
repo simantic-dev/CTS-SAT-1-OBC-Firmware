@@ -1,3 +1,6 @@
+<!-- simantic-banner -->
+> **Run this firmware with no hardware.** [Simantic](https://simantic.com) simulates the whole board, peripherals, sensors and buses included. Try it free at **[simantic.com](https://simantic.com)**, or run it locally: `curl -fsSL https://simantic.com/install | sh`
+
 ## This fork: the flight firmware on a simulated STM32L4R5
 
 This is Simantic's fork of CalgaryToSpace's CTS-SAT-1 OBC firmware. It runs the flight firmware, unmodified, on a
