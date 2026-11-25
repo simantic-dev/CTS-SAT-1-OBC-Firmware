@@ -16,12 +16,12 @@ station does. No board, no bench. No firmware or source file in this fork is cha
 
 ```
 cd sim && sim run --scenario scenario.yaml --ascii lpuart1 --timeout 20 > run.log
-python3 make_gif.py run.log timeline.gif "sim 0.10.8"     # optional, matplotlib + pillow
+python3 make_gif.py run.log timeline.gif 0.10.8     # optional, pillow + ffmpeg
 ```
 
 ![console and bus timeline](sim/timeline.gif)
 
-*Animation drawn from [`sim/run.log`](sim/run.log), the run's own capture: bytes seen on each UART link (the debug console is a text capture so its count is approximate) and the firmware's own log lines by tag. 20 s of virtual time; the run took 11 s of CPU time on a laptop (about 0.6 s per virtual second). On this run every message listed below appeared and none of the absent ones did (LittleFS mount, `hello_world`, EPS enable of channel 8, ADCS run mode, GNSS `log timea once`, `hello.txt` read back as hex and listed as 18 B; no `HardFault`, `GNSS ERROR`, `[A:LFS:CRIT]`, `[A:EPS:ERR]`).*
+*Operations view drawn from [`sim/run.log`](sim/run.log), the run's own capture: the OBC operation state and when it changed, each ground telecommand with its decoded reply, the subsystem state they imply (EPS, boom, ADCS, GNSS, flash) and the firmware's own console lines (the repeated `AX100 downlink inhibited` and `=====` banner lines are left out). The ADCS, EPS and GNSS replies come from the scripted peers in this directory. Simulated on Simantic sim 0.10.8, virtual time, playback 1.00x (20 s of virtual time; the run took 11 s of CPU time on a laptop, about 0.6 s per virtual second). On this run every message listed below appeared and none of the absent ones did (LittleFS mount, `hello_world`, EPS enable of channel 8, ADCS run mode, GNSS `log timea once`, `hello.txt` read back as hex and listed as 18 B; no `HardFault`, `GNSS ERROR`, `[A:LFS:CRIT]`, `[A:EPS:ERR]`).*
 
 **The scenario**, as `sim graph --scenario` prints it. The square box is the simulated MCU running the firmware, the
 rounded boxes are the modelled parts around it, and the hexagons are the UART links:
