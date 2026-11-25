@@ -1,6 +1,19 @@
 #!/usr/bin/env python3
 """Decode the CTS-SAT-1 console that `sim run --ascii lpuart1` prints on stdin into one line of numbers per telecommand."""
-import json, re, sys
+import collections, json, re, sys
+
+ROWS = 28  # on a terminal, redraw the last ROWS lines in place instead of scrolling
+shown = collections.deque(maxlen=ROWS)
+
+
+def emit(line):
+    line = line[:120]
+    if not sys.stdout.isatty():
+        print(line, flush=True)
+        return
+    shown.append(line)
+    sys.stdout.write("\033[H\033[J" + "\n".join(shown) + "\n")
+    sys.stdout.flush()
 
 LOG = re.compile(r"^\[([\d.]+)s\] \(lpuart1 → ground\) (.*)$")
 STAMP = re.compile(r"^\d+\+\d+_[EN] \[")  # firmware log line; anything else is telecommand response text
@@ -49,7 +62,7 @@ def show(cmd, body):
         out = "  ".join(re.findall(r"\]: (\S+/?(?: \(\d+ B\))?)$", body, re.M)[:6])
     else:
         out = body.strip()[:80]
-    print(f"{cmd:<42.42} {out}", flush=True)
+    emit(f"  => {out}")
 
 
 def flush():
@@ -62,17 +75,18 @@ for line in sys.stdin:
     if line.startswith("[ground] GROUND TX CTS1+"):
         flush()
         cur, buf = line[len("[ground] GROUND TX CTS1+"):].rstrip("!"), []
+        emit(line)
         continue
     m = LOG.match(line)
     if not m:
         continue
     t, text = m.groups()
+    # raw firmware console line, as printed; only the sim's "(lpuart1 → ground)" tag is dropped and the line cut to the screen width
+    if text.strip() and not text.startswith(("AX100", "====")):
+        emit(f"[{t}s] {text}")
     if cur is None:
-        if "state changed from" in text:
-            print(f"boot: {re.search(r'from (\w+) to (\w+)', text)[0]} at {t} s", flush=True)
-        elif "LittleFS mounting successful" in text or "Reset reason" in text:
-            print(f"boot: {text.split(': ', 1)[1]}", flush=True)
-    elif STAMP.match(text):
+        continue
+    if STAMP.match(text):
         if cur.startswith("fs_list") and "[T:LFS" in text:
             buf.append(text)
         elif cur.startswith("fs_write") and "Successfully wrote" in text:

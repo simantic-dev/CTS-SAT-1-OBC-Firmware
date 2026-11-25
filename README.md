@@ -16,7 +16,7 @@ station does. No board, no bench. No firmware or source file in this fork is cha
 sim/run.sh      # the same scenario as a PASS/FAIL check
 ```
 
-Every number in the GIF is text the unmodified firmware printed in reply to a telecommand (`sim/view.py` only parses it).
+The GIF is the firmware's own console (LPUART1) streaming live: boot messages, `[A:...]`/`[T:...]` log lines, heartbeat, telecommand responses, with the sim's timestamp in front and lines cut at 120 columns. `sim/view.py` drops only the sim's `(lpuart1 -> ground)` tag and the byte-level UART hex traces, and adds `=>` lines decoding the JSON/hex replies. The `[ground] GROUND TX` lines are the ground peer's own log.
 The values the firmware reads from outside are **stand-ins from the Python peers in `sim/`**, not measurements: the EPS
 housekeeping (3300 mV supply, 21.60 C, 8117 mV / -419 mA input, battery 21.70/21.50 C, `uptime 27 s`), the ADCS
 identification and boot status, and the GNSS `TIMEA` (always locked) are fixed replies; the SPI NAND is a scripted device.
