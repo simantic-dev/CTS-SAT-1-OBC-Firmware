@@ -1,0 +1,62 @@
+# CalgaryToSpace CTS-SAT-1 OBC flight firmware (FreeRTOS, STM32L4R5ZI) booting unmodified with every external device
+# answering, then driven by telecommands over its debug UART. Upstream ELF, see UPSTREAM.md; peers and README here.
+#   sim run --scenario sim/scenario.yaml --ascii lpuart1 --timeout 20   (from the repo root)
+machines:
+  obc:
+    mcu: STM32L4R5ZI
+    elf: CTS-SAT-1_FW.elf
+    parts:
+      # SPI1 (PE13 SCK, PE14 MISO, PE15 MOSI), flash 0 chip select PE7: Micron MT29F1G01 SPI NAND with a formatted LittleFS
+      - { name: nand0, type: spi-device, bus: spi1, cs: PE7, script: nand_peer.py }
+      # I2C1 (PG14 SCL, PG13 SDA): CubeSpace CubeComputer stand-in at 0x57
+      - { name: adcs, type: i2c-device, bus: i2c1, address: 0x57, script: adcs_peer.py }
+      # UART5 (PC12 TX, PD2 RX): EPS, "<cmd>...</cmd>" / "<rsp>...</rsp>" frames
+      - { name: eps, type: uart-device, script: eps_peer.py }
+      # USART3 (PC4 TX, PC5 RX): NovAtel OEM7-style ASCII GNSS receiver
+      - { name: gnss, type: uart-device, script: gnss_peer.py }
+      # LPUART1 (PG7 TX, PG8 RX): the debug UART, telecommand uplink and console
+      - { name: ground, type: uart-device, script: ground_peer.py }
+media:
+  - { type: uart, connect: [obc.uart5, obc.eps] }
+  - { type: uart, connect: [obc.usart3, obc.gnss] }
+  - { type: uart, connect: [obc.lpuart1, obc.ground] }
+timeout: 20
+expect:
+  # boot, with the EPS, flash and ADCS directory all working
+  - "MX_Init() done"
+  - "All non-default channels disabled successfully!"
+  - "LittleFS mounting successful!"
+  - "Successfully created directory: ./logs"
+  - "Completed LFS_init()"
+  - "Successfully created directory: ADCS"
+  - "CTS1 operation state changed from BOOTED_AND_WAITING to NOMINAL_WITHOUT_RADIO_TX"
+  # telecommand uplink
+  - "Executing telecommand 'hello_world'"
+  - "Hello, world!"
+  # EPS housekeeping and channel control
+  - '{"mode":1,"config_changed_since_boot":0,"reset_cause":0,"uptime_sec":'
+  - "EPS enable channel 8 (3V3_GNSS) executed."
+  - '"3V3_GNSS"]'
+  - '{"voltage_internal_board_supply_mV":3300,"temperature_mcu_cC":2160,"vip_total_input":{"mV":8117,"mA":-419'
+  # CubeSpace ADCS: identification, boot status, run mode
+  - '{"node_type":10,"interface_version":1,"major_firmware_version":1,"minor_firmware_version":12'
+  - '{"reset_cause":0,"boot_cause":3,"boot_counter":1,"boot_program_index":1,"major_firmware_version":1'
+  - "Telecommand 'adcs_set_run_mode' executed. Duration="
+  - '{"attitude_estimation_mode":0,"control_mode":0,"adcs_run_mode":1,'
+  # GNSS
+  - "GNSS Response (154 chars): <OK"
+  - "FINESTEERING,2445,"
+  - ",VALID*"
+  # LittleFS: write, read back (hex of "CTS-SAT-1 persists"), list
+  - "Successfully wrote data to file: hello.txt"
+  - "4354532D5341542D31207065727369737473"
+  - "hello.txt (18 B)"
+  - "Successfully listed contents from directory: ."
+expect_absent:
+  - "lfs_mount() ->"
+  - "[A:LFS:CRIT]"
+  - "[A:EPS:ERR]"
+  - "timeout before first byte"
+  - "Error disabling EPS channel"
+  - "GNSS ERROR"
+  - "HardFault"

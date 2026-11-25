@@ -12,6 +12,17 @@ station does. No board, no bench. No firmware or source file in this fork is cha
 `sim-fixtures` repository (branch `l4r5/cts-sat-1-obc`,
 `tests/stm/nucleo-l4r5zi/cts-sat-1-obc/`), not here.
 
+**Run it from this fork** (`sim` 0.10.8, build 64f89c38, 2026-11-25; the scenario, peers and ELF are copied into [`sim/`](sim/)):
+
+```
+cd sim && sim run --scenario scenario.yaml --ascii lpuart1 --timeout 20 > run.log
+python3 make_gif.py run.log timeline.gif "sim 0.10.8"     # optional, matplotlib + pillow
+```
+
+![console and bus timeline](sim/timeline.gif)
+
+*Animation drawn from [`sim/run.log`](sim/run.log), the run's own capture: bytes seen on each UART link (the debug console is a text capture so its count is approximate) and the firmware's own log lines by tag. 20 s of virtual time; the run took 11 s of CPU time on a laptop (about 0.6 s per virtual second). On this run every message listed below appeared and none of the absent ones did (LittleFS mount, `hello_world`, EPS enable of channel 8, ADCS run mode, GNSS `log timea once`, `hello.txt` read back as hex and listed as 18 B; no `HardFault`, `GNSS ERROR`, `[A:LFS:CRIT]`, `[A:EPS:ERR]`).*
+
 **The scenario**, as `sim graph --scenario` prints it. The square box is the simulated MCU running the firmware, the
 rounded boxes are the modelled parts around it, and the hexagons are the UART links:
 
