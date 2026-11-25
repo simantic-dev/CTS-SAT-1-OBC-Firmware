@@ -5,12 +5,25 @@
 
 This is Simantic's fork of CalgaryToSpace's CTS-SAT-1 OBC firmware. It runs the flight firmware, unmodified, on a
 simulated STM32L4R5ZI with its external devices attached, then commands it over its debug UART the way the ground
-station does. No board, no bench. No firmware or source file in this fork is changed; only this README.
+station does. No board, no bench. No firmware or source file in this fork is changed; only this README, `demo`, `media/` and the `sim/` scenario.
+
+![CTS-SAT-1 OBC firmware running on the simulated STM32L4R5: one decoded line per telecommand](media/cts-sat-1-demo.gif)
+
+**Run it** (needs `sim`: `curl -fsSL https://simantic.com/install | sh`; about 25 s of wall time for 20 simulated seconds):
+
+```sh
+./demo          # the GIF above: boots the firmware, sends the ground telecommands, prints the decoded replies
+sim/run.sh      # the same scenario as a PASS/FAIL check
+```
+
+Every number in the GIF is text the unmodified firmware printed in reply to a telecommand (`sim/view.py` only parses it).
+The values the firmware reads from outside are **stand-ins from the Python peers in `sim/`**, not measurements: the EPS
+housekeeping (3300 mV supply, 21.60 C, 8117 mV / -419 mA input, battery 21.70/21.50 C, `uptime 27 s`), the ADCS
+identification and boot status, and the GNSS `TIMEA` (always locked) are fixed replies; the SPI NAND is a scripted device.
 
 **What runs:** the upstream ELF built from commit `1c98525` (FreeRTOS, `CTS-SAT-1_FW.elf`) on Simantic's `sim`
 (pyrite engine, model `STM32L4R5ZI`). The scenario, peers and pre-built ELF live in Simantic's
-`sim-fixtures` repository (branch `l4r5/cts-sat-1-obc`,
-`tests/stm/nucleo-l4r5zi/cts-sat-1-obc/`), not here.
+`sim-fixtures` repository (`tests/stm/nucleo-l4r5zi/cts-sat-1-obc/`); a copy of the ELF, peers and scenario is in `sim/` here.
 
 **The scenario**, as `sim graph --scenario` prints it. The square box is the simulated MCU running the firmware, the
 rounded boxes are the modelled parts around it, and the hexagons are the UART links:

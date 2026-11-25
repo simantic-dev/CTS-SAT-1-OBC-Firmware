@@ -1,0 +1,10 @@
+#!/bin/sh
+# Runs the CTS-SAT-1 OBC flight firmware (FreeRTOS) on the simulated STM32L4R5 with its flash, EPS, ADCS and GNSS peers,
+# sends the ground telecommands over LPUART1 and prints the firmware's replies decoded by sim/view.py. Usage: ./demo
+# Needs `sim` on PATH (or SIM=/path/to/sim). About 25 s of wall time for 20 virtual seconds. sim/run.sh is the assertion run.
+set -eu
+SIM="${SIM:-sim}"
+cd "$(dirname "$0")/sim"
+command -v "$SIM" >/dev/null || { echo "sim not found. Install it: curl -fsSL https://simantic.com/install | sh" >&2; exit 1; }
+"$SIM" run --scenario scenario.yaml --ascii lpuart1 --timeout "${1:-20}" 2>&1 | python3 view.py
+echo "done: ${1:-20} virtual s of CTS-SAT-1 OBC firmware, one line per telecommand"

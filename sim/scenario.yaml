@@ -1,0 +1,21 @@
+# CTS-SAT-1 OBC flight firmware (FreeRTOS, STM32L4R5ZI) with flash, EPS, ADCS, GNSS and ground peers. Run from sim/.
+machines:
+  obc:
+    mcu: STM32L4R5ZI
+    elf: CTS-SAT-1_FW.elf
+    parts:
+      # SPI1 (PE13 SCK, PE14 MISO, PE15 MOSI), flash 0 chip select PE7: Micron MT29F1G01 SPI NAND with a formatted LittleFS
+      - { name: nand0, type: spi-device, bus: spi1, cs: PE7, script: nand_peer.py }
+      # I2C1 (PG14 SCL, PG13 SDA): CubeSpace CubeComputer stand-in at 0x57
+      - { name: adcs, type: i2c-device, bus: i2c1, address: 0x57, script: adcs_peer.py }
+      # UART5 (PC12 TX, PD2 RX): EPS, "<cmd>...</cmd>" / "<rsp>...</rsp>" frames
+      - { name: eps, type: uart-device, script: eps_peer.py }
+      # USART3 (PC4 TX, PC5 RX): NovAtel OEM7-style ASCII GNSS receiver
+      - { name: gnss, type: uart-device, script: gnss_peer.py }
+      # LPUART1 (PG7 TX, PG8 RX): the debug UART, telecommand uplink and console
+      - { name: ground, type: uart-device, script: ground_peer.py }
+media:
+  - { type: uart, connect: [obc.uart5, obc.eps] }
+  - { type: uart, connect: [obc.usart3, obc.gnss] }
+  - { type: uart, connect: [obc.lpuart1, obc.ground] }
+timeout: 20
